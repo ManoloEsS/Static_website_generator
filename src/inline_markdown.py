@@ -8,15 +8,17 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             new_nodes.append(node)
             continue
         if node.text.count(delimiter) % 2 != 0:
-            raise SyntaxError("Invalid Markdown syntax")
+            raise ValueError("Invalid Markdown syntax")
 
+        current_node = []
         split_node_text = node.text.split(delimiter)
         for i, item in enumerate(split_node_text):
             if item == "":
                 continue
             if i % 2 != 0:
-                new_nodes.append(TextNode(item, text_type))
+                current_node.append(TextNode(item, text_type))
                 continue
-            new_nodes.append(TextNode(item, TextType.TEXT))
+            current_node.append(TextNode(item, TextType.TEXT))
+        new_nodes.extend(current_node)
 
     return new_nodes
