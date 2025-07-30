@@ -116,7 +116,7 @@ class TestInLineMarkdown(unittest.TestCase):
         self.assertListEqual(
             [
                 ("image", "https://i.imgur.com/zjjcJKZ.png"),
-                ("image2", "//i.imgur.com/zjjcJKZ.png"),
+                ("image2", "//i.imgur.com/zjjcJKZhello.png"),
             ],
             matches,
         )
