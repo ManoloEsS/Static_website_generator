@@ -153,6 +153,99 @@ class TestInLineMarkdown(unittest.TestCase):
             new_nodes,
         )
 
+    def test_split_links(self):
+        node = TextNode(
+            "This is text with a [link](boot.dev) and another [link2](booty.dev)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "boot.dev"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("link2", TextType.LINK, "booty.dev"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_links_starting_whitespace(self):
+        node = TextNode(
+            "     This is text with a [link](boot.dev) and another [link2](booty.dev)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("     This is text with a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "boot.dev"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("link2", TextType.LINK, "booty.dev"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_links_ending_whitespace(self):
+        node = TextNode(
+            "This is text with a [link](boot.dev) and another [link2](booty.dev)      ",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "boot.dev"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("link2", TextType.LINK, "booty.dev"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_links_no_middle_text(self):
+        node = TextNode(
+            "This is text with a [link](boot.dev)[link2](booty.dev)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "boot.dev"),
+                TextNode("link2", TextType.LINK, "booty.dev"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_links_whitspace_middle(self):
+        node = TextNode(
+            "This is text with a [link](boot.dev) [link2](booty.dev)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "boot.dev"),
+                TextNode("link2", TextType.LINK, "booty.dev"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_links_starting_whitespace_link(self):
+        node = TextNode(
+            "     [link](boot.dev) and another [link2](booty.dev)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("link", TextType.LINK, "boot.dev"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("link2", TextType.LINK, "booty.dev"),
+            ],
+            new_nodes,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
