@@ -95,5 +95,11 @@ def extract_markdown_links(text: str) -> list[tuple[str, str]]:
     return link_matches
 
 
-def text_to_text_nodes(text: str) -> list[TextNode]:
-    pass
+def text_to_textnodes(text: str) -> list[TextNode]:
+    unprocessed_text_node = TextNode(text, TextType.TEXT)
+    split_images = split_nodes_image([unprocessed_text_node])
+    split_links = split_nodes_link(split_images)
+    split_code = split_nodes_delimiter(split_links, "`", TextType.CODE)
+    split_italic = split_nodes_delimiter(split_code, "_", TextType.ITALIC)
+    split_bold = split_nodes_delimiter(split_italic, "**", TextType.BOLD)
+    return split_bold
