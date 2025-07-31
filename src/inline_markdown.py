@@ -50,6 +50,7 @@ def split_nodes_image(old_nodes: list) -> list:
         if text_to_check != "":
             current_node.append(TextNode(text_to_check, TextType.TEXT))
         new_nodes.extend(current_node)
+    return new_nodes
 
 
 def split_nodes_link(old_nodes: list) -> list:
@@ -77,6 +78,7 @@ def split_nodes_link(old_nodes: list) -> list:
         if text_to_check != "":
             current_node.append(TextNode(text_to_check, TextType.TEXT))
         new_nodes.extend(current_node)
+    return new_nodes
 
 
 def extract_markdown_images(text: str) -> list[tuple[str, str]]:
