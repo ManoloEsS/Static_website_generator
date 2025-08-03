@@ -1,9 +1,14 @@
-from .textnode import TextNode, TextType
+from copystatic import move_tree
+
+dir_path_static = "./static"
+dir_path_public = "./public"
 
 
 def main():
-    new_node = TextNode("hello", TextType.LINK, "boot.dev")
-    print(new_node)
+    move_tree(
+        dir_path_static,
+        dir_path_public,
+    )
 
 
 if __name__ == "__main__":
