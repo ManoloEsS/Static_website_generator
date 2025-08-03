@@ -3,7 +3,7 @@ import shutil
 
 
 def move_tree(source_path: str, destination_path: str):
-    """Function that recursively moves directories and files from a source path into a destination path"""
+    """Function that moves directories and files from a source path into a destination path"""
 
     print("Deleting public directory...")
     if os.path.exists(destination_path):
