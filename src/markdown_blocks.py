@@ -33,68 +33,63 @@ def block_to_block_type(markdown_block: str) -> BlockType:
     """Function that checks and returns the type of HTML block a markdown block is
     and returns the BlockType"""
 
+    lines = markdown_block.split("\n")
+
     if markdown_block.startswith(("# ", "## ", "### ", "#### ", "##### ", "###### ")):
         return BlockType.HEADING
-    elif markdown_block.startswith("```") and markdown_block.endswith("```"):
+    elif len(lines) > 1 and lines[0].startswith("```") and lines[-1].startswith("```"):
         return BlockType.CODE
-    elif all(line.startswith("> ") for line in markdown_block.split("\n")):
+    elif markdown_block.startswith(">"):
+        for line in lines:
+            if not line.startswith(">"):
+                return BlockType.PARAGRAPH
         return BlockType.QUOTE
-    elif all(line.startswith(("- ", "* ")) for line in markdown_block.split("\n")):
+    elif markdown_block.startswith(("- ", "* ")):
+        for line in lines:
+            if not line.startswith(("- ", "* ")):
+                return BlockType.PARAGRAPH
         return BlockType.ULIST
-    elif starts_with_ascending_number(markdown_block):
+    elif markdown_block.startswith("1. "):
+        i = 1
+        for line in lines:
+            if not line.startswith(f"{i}. "):
+                return BlockType.PARAGRAPH
+            i += 1
         return BlockType.OLIST
     return BlockType.PARAGRAPH
 
 
-def starts_with_ascending_number(markdown_block: str) -> bool:
-    """Helper function to check if every line in a markdown block starts with ascending numbers followed by '. '"""
-
-    lines = markdown_block.split("\n")
-    n = 1
-    for line in lines:
-        if not line.startswith(f"{n}. "):
-            return False
-        n += 1
-    return True
-
-
-def markdown_to_html_node(markdown: str, root_tag="div") -> HTMLNode:
-    """Function that converts a full markdown document into a parent HTMLnode with multiple children"""
+def markdown_to_html_node(markdown: str) -> ParentNode:
+    """Function that converts a full markdown document into a parent Parentnode with multiple children"""
 
     markdown_blocks = markdown_to_blocks(markdown)
-    nodes = []
+    children = []
     for block in markdown_blocks:
-        block_type = block_to_block_type(block)
-        tag = block_type_to_node_tag(block_type)
+        html_node = block_to_html_node(block)
+        children.append(html_node)
+    return ParentNode("div", children, None)
 
-        if block_type == BlockType.CODE:
-            nodes.append(code_text_to_parent_html(block))
-            continue
-        if block_type == BlockType.ULIST:
-            children = unordered_list_to_children_nodes(block)
-            nodes.append(ParentNode(tag, children))
-            continue
-        if block_type == BlockType.OLIST:
-            children = ordered_list_to_children_nodes(block)
-            nodes.append(ParentNode(tag, children))
-            continue
-        if block_type == BlockType.HEADING:
-            tag += str(get_header_number(block))
-            children = header_to_children_nodes(block)
-            nodes.append(ParentNode(tag, children))
-            continue
-        if block_type == BlockType.QUOTE:
-            children = quote_to_children_nodes(block)
-            nodes.append(ParentNode(tag, children))
-            continue
-        children = text_to_children(block)
-        nodes.append(ParentNode(tag, children))
 
-    return ParentNode(root_tag, nodes)
+def block_to_html_node(block: str) -> ParentNode:
+    """Helper function that returns an html node based on the block type calling {BlockType}_to_html_node functions"""
+    block_type = block_to_block_type(block)
+    if block_type == BlockType.PARAGRAPH:
+        return paragraph_to_html_node(block)
+    if block_type == BlockType.CODE:
+        return code_to_html_node(block)
+    if block_type == BlockType.ULIST:
+        return ulist_to_html_node(block)
+    if block_type == BlockType.OLIST:
+        return olist_to_html_node(block)
+    if block_type == BlockType.HEADING:
+        return heading_to_html_node(block)
+    if block_type == BlockType.QUOTE:
+        return quote_to_html_node(block)
+    raise ValueError("invalid block type")
 
 
 def text_to_children(text: str) -> list[LeafNode]:
-    """Helper function that takes a string and returns a list of HTMLNodes"""
+    """Helper function that takes a string and returns a list of LeafNodes"""
 
     children_nodes = []
     text_nodes = text_to_textnodes(text)
@@ -104,77 +99,77 @@ def text_to_children(text: str) -> list[LeafNode]:
     return children_nodes
 
 
-def block_type_to_node_tag(block_type: BlockType) -> str:
-    """Helper function that returns the tag for an HTMLNode from markdown"""
+def heading_to_html_node(block: str) -> ParentNode:
+    """Helper function that creates a ParentNode from a heading markdown block"""
 
-    if block_type == BlockType.QUOTE:
-        return "blockquote"
-    elif block_type == BlockType.HEADING:
-        return "h"
-    elif block_type == BlockType.ULIST:
-        return "ul"
-    elif block_type == BlockType.OLIST:
-        return "ol"
-    elif block_type == BlockType.CODE:
-        return "code"
-    return "p"
-
-
-def get_header_number(block: str) -> int:
-    """Helper function that returns the number of '#' to determine the number in the heading tag"""
-    return block.count("#")
+    level = 0
+    for char in block:
+        if char == "#":
+            level += 1
+        else:
+            break
+    if level + 1 >= len(block):
+        raise ValueError(f"invalid heading level: {level}")
+    text = block[level + 1 :]
+    children = text_to_children(text)
+    return ParentNode(f"h{level}", children)
 
 
-def code_text_to_parent_html(block: str) -> ParentNode:
+def code_to_html_node(block: str) -> ParentNode:
     """Helper function that takes a code block and creates a parent node
     with the 'pre' tag that nests the code html node"""
 
-    lines = block.splitlines()
-    content_lines = lines[1:-1]
-    dedented = textwrap.dedent("\n".join(content_lines))
-    code_content = dedented + "\n"
-    code_text_node = TextNode(code_content, TextType.CODE)
-    code_html_node = text_node_to_html_node(code_text_node)
-    return ParentNode("pre", [code_html_node])
+    if not block.startswith("```") or not block.endswith("```"):
+        raise ValueError("Invalid code block")
+    text = block[4:-3]
+    raw_text_node = TextNode(text, TextType.TEXT)
+    child = text_node_to_html_node(raw_text_node)
+    code = ParentNode("code", [child])
+    return ParentNode("pre", [code])
 
 
-def unordered_list_to_children_nodes(block: str) -> list[ParentNode]:
-    """Helper function that returns a list of unordered list item Parent nodes from a text block"""
-
-    split_block = block.split("\n")
-    formatted_block = [block[2:] for block in split_block]
-    list_items = []
-    for block in formatted_block:
-        html_children = text_to_children(block)
-        list_items.append(ParentNode("li", html_children))
-    return list_items
-
-
-def ordered_list_to_children_nodes(block: str) -> list[ParentNode]:
-    """Helper function that returns a list of ordered list item Parent nodes from a text block"""
+def ulist_to_html_node(block: str) -> ParentNode:
+    """Helper function that returns a unordered list Parent node from a text block"""
 
     split_block = block.split("\n")
-    formatted_block = [block[block.find(".") + 2 :] for block in split_block]
-    list_items = []
-    for block in formatted_block:
-        html_children = text_to_children(block)
-        list_items.append(ParentNode("li", html_children))
-    return list_items
+    html_items = []
+    for item in split_block:
+        text = item[2:]
+        html_children = text_to_children(text)
+        html_items.append(ParentNode("li", html_children))
+    return ParentNode("ul", html_items)
 
 
-def header_to_children_nodes(block: str) -> list[ParentNode]:
-    """Helper function that returns a list of header Parent nodes from a text block"""
+def olist_to_html_node(block: str) -> ParentNode:
+    """Helper function that returns an ordered list parent node from a text block"""
 
-    formatted_block = re.sub(r"^#{1,6}\s*", "", block)
-    header_children = text_to_children(formatted_block)
-    return header_children
+    split_block = block.split("\n")
+    html_items = []
+    for item in split_block:
+        text = item[3:]
+        html_children = text_to_children(text)
+        html_items.append(ParentNode("li", html_children))
+    return ParentNode("ol", html_items)
 
 
-def quote_to_children_nodes(block: str) -> list[ParentNode]:
-    """Helper function that returns a list of quote parent nodes from a text block"""
+def quote_to_html_node(block: str) -> ParentNode:
+    """Helper function that returns a quote parent node from a text block"""
 
     split_block = block.splitlines()
-    formatted_block = [block[2:] for block in split_block]
-    inner_markdown = "\n".join(formatted_block)
-    quote_parent = markdown_to_html_node(inner_markdown)
-    return quote_parent.children
+    new_lines = []
+    for line in split_block:
+        if not line.startswith(">"):
+            raise ValueError("Invalid quote block")
+        new_lines.append(line.lstrip(">").strip())
+    content = " ".join(new_lines)
+    children = text_to_children(content)
+    return ParentNode("blockquote", children)
+
+
+def paragraph_to_html_node(block: str) -> ParentNode:
+    """Helper function that returns a paragraph parent node from a text block"""
+
+    lines = block.split("\n")
+    paragraph = " ".join(lines)
+    children = text_to_children(paragraph)
+    return ParentNode("p", children)
