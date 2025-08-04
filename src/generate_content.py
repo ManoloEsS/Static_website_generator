@@ -18,7 +18,9 @@ def extract_title(markdown_file) -> str:
     raise ValueError("No h1 header, invalid markdown file")
 
 
-def generate_page(from_path: str, template_path: str, dest_path: str):
+def generate_page(
+    from_path: str, template_path: str, dest_path: str, basepath: str = "/"
+):
     """Function that creates an HTML file at the destinaton path using the content from a path and the
     specified template"""
 
@@ -34,12 +36,14 @@ def generate_page(from_path: str, template_path: str, dest_path: str):
     title = extract_title(md_contents)
     html_content = html_content.replace("{{ Title }}", title)
     html_content = html_content.replace("{{ Content }}", html)
+    html_content = html_content.replace('href="/', f'href="{basepath}')
+    html_content = html_content.replace('src="/', f'src="{basepath}')
 
     write_html_file(dest_path, html_content)
 
 
 def generate_pages_recursive(
-    dir_path_content: str, template_path: str, dest_dir_path: str
+    dir_path_content: str, template_path: str, dest_dir_path: str, basepath: str = "/"
 ):
     """Function that crawls through the source directory, generates and writes html
     files into the destination path for every markdown file"""
@@ -50,9 +54,9 @@ def generate_pages_recursive(
         dest_path = os.path.join(dest_dir_path, path)
         if os.path.isfile(current_path):
             dest_path = Path(dest_path).with_suffix(".html")
-            generate_page(current_path, template_path, dest_path)
+            generate_page(current_path, template_path, dest_path, basepath)
             continue
-        generate_pages_recursive(current_path, template_path, dest_path)
+        generate_pages_recursive(current_path, template_path, dest_path, basepath)
 
 
 def write_html_file(dest_path: str, html_content: str):
