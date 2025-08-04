@@ -1,8 +1,9 @@
 from src.copystatic import move_tree
-from src.extract_markdown import generate_page
+from src.generate_content import generate_pages_recursive
 
 dir_path_static = "./static"
 dir_path_public = "./public"
+dir_path_content = "./content"
 
 
 def main():
@@ -10,7 +11,7 @@ def main():
         dir_path_static,
         dir_path_public,
     )
-    generate_page("./content/index.md", "./template.html", "./public/index.html")
+    generate_pages_recursive(dir_path_content, "./template.html", dir_path_public)
 
 
 if __name__ == "__main__":

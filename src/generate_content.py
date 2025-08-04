@@ -5,6 +5,7 @@ from src.markdown_blocks import (
     markdown_to_html_node,
 )
 import os
+from pathlib import Path
 
 
 def extract_title(markdown_file) -> str:
@@ -14,7 +15,7 @@ def extract_title(markdown_file) -> str:
     for block in md_blocks:
         if block_to_block_type(block) == BlockType.HEADING and block.startswith("# "):
             return block.lstrip("# ").strip()
-    raise Exception("No h1 header, invalid markdown file")
+    raise ValueError("No h1 header, invalid markdown file")
 
 
 def generate_page(from_path: str, template_path: str, dest_path: str):
@@ -28,12 +29,30 @@ def generate_page(from_path: str, template_path: str, dest_path: str):
     with open(template_path, "r") as template:
         html_content = template.read()
 
-    html_node = markdown_to_html_node(md_contents)
-    html_string = html_node.to_html()
+    node = markdown_to_html_node(md_contents)
+    html = node.to_html()
     title = extract_title(md_contents)
     html_content = html_content.replace("{{ Title }}", title)
-    html_content = html_content.replace("{{ Content }}", html_string)
+    html_content = html_content.replace("{{ Content }}", html)
+
     write_html_file(dest_path, html_content)
+
+
+def generate_pages_recursive(
+    dir_path_content: str, template_path: str, dest_dir_path: str
+):
+    """Function that crawls through the source directory, generates and writes html
+    files into the destination path for every markdown file"""
+
+    dir_content = os.listdir(dir_path_content)
+    for path in dir_content:
+        current_path = os.path.join(dir_path_content, path)
+        dest_path = os.path.join(dest_dir_path, path)
+        if os.path.isfile(current_path):
+            dest_path = Path(dest_path).with_suffix(".html")
+            generate_page(current_path, template_path, dest_path)
+            continue
+        generate_pages_recursive(current_path, template_path, dest_path)
 
 
 def write_html_file(dest_path: str, html_content: str):
