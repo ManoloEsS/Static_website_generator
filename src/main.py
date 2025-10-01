@@ -9,7 +9,13 @@ dir_path_content = "./content"
 dir_path_docs = "./docs"
 
 
-def main():
+def main() -> None:
+    """Main entry point for the static site generator.
+    
+    Copies static files to the docs directory and generates HTML pages
+    from markdown content. Optionally accepts a basepath argument from
+    command line for configuring URL paths.
+    """
     basepath = "/"
     if len(sys.argv) > 1:
         basepath = sys.argv[1]

@@ -2,7 +2,20 @@ import re
 from src.textnode import TextNode, TextType
 
 
-def split_nodes_delimiter(old_nodes, delimiter, text_type):
+def split_nodes_delimiter(old_nodes: list[TextNode], delimiter: str, text_type: TextType) -> list[TextNode]:
+    """Split text nodes by a delimiter and apply formatting to delimited text.
+    
+    Args:
+        old_nodes: A list of TextNode objects to process
+        delimiter: The delimiter string to split on (e.g., '**', '*', '`')
+        text_type: The TextType to apply to delimited text
+        
+    Returns:
+        A new list of TextNode objects with formatting applied
+        
+    Raises:
+        ValueError: If the markdown syntax is invalid (unmatched delimiters)
+    """
     new_nodes = []
     for node in old_nodes:
         if node.text_type != TextType.TEXT:
@@ -25,15 +38,43 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
     return new_nodes
 
 
-def split_nodes_image(old_nodes: list) -> list:
+def split_nodes_image(old_nodes: list[TextNode]) -> list[TextNode]:
+    """Split text nodes to extract image markdown syntax.
+    
+    Args:
+        old_nodes: A list of TextNode objects to process
+        
+    Returns:
+        A new list of TextNode objects with images extracted
+    """
     return split_nodes_link_image(old_nodes, TextType.IMAGE)
 
 
-def split_nodes_link(old_nodes: list) -> list:
+def split_nodes_link(old_nodes: list[TextNode]) -> list[TextNode]:
+    """Split text nodes to extract link markdown syntax.
+    
+    Args:
+        old_nodes: A list of TextNode objects to process
+        
+    Returns:
+        A new list of TextNode objects with links extracted
+    """
     return split_nodes_link_image(old_nodes, TextType.LINK)
 
 
-def split_nodes_link_image(old_nodes: list, text_type: TextType) -> list:
+def split_nodes_link_image(old_nodes: list[TextNode], text_type: TextType) -> list[TextNode]:
+    """Split text nodes to extract link or image markdown syntax.
+    
+    Args:
+        old_nodes: A list of TextNode objects to process
+        text_type: Either TextType.LINK or TextType.IMAGE
+        
+    Returns:
+        A new list of TextNode objects with links or images extracted
+        
+    Raises:
+        ValueError: If text_type is not LINK or IMAGE, or if markdown syntax is invalid
+    """
     new_nodes = []
     for node in old_nodes:
         if node.text_type != TextType.TEXT:
@@ -84,18 +125,42 @@ def split_nodes_link_image(old_nodes: list, text_type: TextType) -> list:
 
 
 def extract_markdown_images(text: str) -> list[tuple[str, str]]:
+    """Extract image markdown syntax from text.
+    
+    Args:
+        text: A string containing markdown text
+        
+    Returns:
+        A list of tuples containing (alt_text, image_url) for each image found
+    """
     pattern = r"!\[([^\[\]]*)\]\(([^\(\)]*)\)"
     image_matches = re.findall(pattern, text)
     return image_matches
 
 
 def extract_markdown_links(text: str) -> list[tuple[str, str]]:
+    """Extract link markdown syntax from text.
+    
+    Args:
+        text: A string containing markdown text
+        
+    Returns:
+        A list of tuples containing (link_text, url) for each link found
+    """
     pattern = r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)"
     link_matches = re.findall(pattern, text)
     return link_matches
 
 
 def text_to_textnodes(text: str) -> list[TextNode]:
+    """Convert markdown text into a list of TextNode objects with appropriate formatting.
+    
+    Args:
+        text: A string containing markdown text with formatting
+        
+    Returns:
+        A list of TextNode objects representing the formatted text
+    """
     unprocessed_text_node = [TextNode(text, TextType.TEXT)]
     split_images = split_nodes_image(unprocessed_text_node)
     split_links = split_nodes_link(split_images)
