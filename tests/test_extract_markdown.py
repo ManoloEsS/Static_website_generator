@@ -1,5 +1,5 @@
 import unittest
-from src.extract_markdown import extract_title
+from src.generate_content import extract_title
 
 
 class TestMarkdown(unittest.TestCase):
