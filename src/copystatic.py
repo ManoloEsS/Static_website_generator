@@ -2,9 +2,13 @@ import os
 import shutil
 
 
-def move_tree(source_path: str, destination_path: str):
-    """Function that moves directories and files from a source path into a destination path"""
-
+def move_tree(source_path: str, destination_path: str) -> None:
+    """Function that moves directories and files from a source path into a destination path.
+    
+    Args:
+        source_path: The path to the source directory
+        destination_path: The path to the destination directory
+    """
     print("Deleting public directory...")
     if os.path.exists(destination_path):
         shutil.rmtree(destination_path)
@@ -19,9 +23,13 @@ def move_tree(source_path: str, destination_path: str):
     print()
 
 
-def recursive_copy(source_path: str, destination_path: str):
-    """Function that recursively copies a directory tree into a destination directory"""
-
+def recursive_copy(source_path: str, destination_path: str) -> None:
+    """Function that recursively copies a directory tree into a destination directory.
+    
+    Args:
+        source_path: The path to the source directory
+        destination_path: The path to the destination directory
+    """
     if not os.path.exists(destination_path):
         os.mkdir(destination_path)
     print(f"Created new directory {destination_path}")
@@ -38,8 +46,12 @@ def recursive_copy(source_path: str, destination_path: str):
         recursive_copy(current_path, new_path)
 
 
-def print_tree(root_dir):
-    """Function that prints a directory's tree structure"""
+def print_tree(root_dir: str) -> None:
+    """Function that prints a directory's tree structure.
+    
+    Args:
+        root_dir: The root directory path to print the tree structure for
+    """
     for dirpath, dirnames, filenames in os.walk(root_dir):
         depth = dirpath[len(root_dir) :].count(os.sep)
         indent = "    " * depth
