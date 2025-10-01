@@ -1,4 +1,4 @@
-# My Static Website
+# Static website generator
 
 A Python-based static site generator that converts Markdown files into a fully-functional static website. This project provides a complete solution for building static websites from Markdown content with automatic HTML generation, CSS styling, and asset management.
 
